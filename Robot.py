@@ -6,29 +6,24 @@ import math
 from Settings import Settings
 from Bullet import Bullet
 from manager.GameManager import GameManager
-from manager.RobotManager import RobotManager
 from manager.BulletManager import BulletManager
+from core.CoreSprite import CoreSprite
 
-class Robot(pygame.sprite.Sprite):
+class Robot(CoreSprite):
 
     def __init__(self, image, name):
-        super(Robot, self).__init__()
-        self.__surf = pygame.image.load(image).convert()
+        super().__init__(pygame.Vector2(1, 0), pygame.Vector2(1, 0), image)
         self.__originalsurf = pygame.image.load(image).convert()
-        self.__rect = self.__surf.get_rect()
         self.__name = name
-        self.__angle = 0
-        self.direction = pygame.Vector2(1, 0)
         self.state = {}
-
 
         #
         #   Settings
         #
         self.__speed = Settings.SPEED
         self.__health = Settings.HEALTH
-        self.__rect.centery = 0
-        self.__rect.centerx = 0
+        self.rect.centery = 0
+        self.rect.centerx = 0
         self.__myfont = pygame.font.SysFont('Comic Sans MS', 20)
         self.__isAlive = True
         self.__commandsIssued = 0
@@ -37,14 +32,8 @@ class Robot(pygame.sprite.Sprite):
         strToPrint = self.getRobotName() + " - " + str(self.getHealth()) + " - " + str(self.__totalCommandsIssued)
         self.__textSurface = self.__myfont.render(strToPrint, False, (0, 0, 0))       
 
-    def getAngle(self):
-        return self.__angle
-
     def getTextSurface(self):
         return self.__textSurface
-
-    def getImageSize(self):
-        return self.__surf.get_size()
 
     def getOriginalSize(self):
         return self.__originalsurf.get_size()
@@ -62,22 +51,16 @@ class Robot(pygame.sprite.Sprite):
             self.__isAlive = False
         return self.__isAlive
 
-    def getSurf(self):
-        return self.__surf
-    
-    def getRect(self):
-        return self.__rect
-
     def move(self):
         if self.canRunCommand():
-            if self.__rect.centerx < Settings.SCREEN_WIDTH - (self.getImageSize()[0] / 2):
-                self.__rect.centerx += self.__speed
+            if self.rect.centerx < Settings.SCREEN_WIDTH - (self.getImageSize()[0] / 2):
+                self.rect.centerx += self.__speed
                 self.__commandsIssued += 1
 
     def shoot(self):
         last = round(time.time() * 1000)
         if self.canRunCommand() and (last - self.__lastBulletFired) > Settings.BULLET_TICK:
-            BulletManager.SINGLETON.addBullets(Bullet(self.__rect.center, self.direction.normalize(),self.__name))
+            BulletManager.SINGLETON.addBullets(Bullet(self.rect.center, self.direction.normalize(),self.__name))
             self.__lastBulletFired = last
             self.__commandsIssued += 1
 
@@ -89,16 +72,16 @@ class Robot(pygame.sprite.Sprite):
         return boolVal
 
     def turn(self, angle):
-        if self.canRunCommand() and not GameManager.getGameManager().checkCollision(self.__rect, self.getRobotName()):
-            self.__angle += angle
+        if self.canRunCommand() and not GameManager.getGameManager().checkCollision(self.rect, self.getRobotName()):
+            self.angle += angle
 
-            if self.__angle % 360 == 0:
-                self.__angle = 0
+            if self.angle % 360 == 0:
+                self.angle = 0
 
-            self.__surf = pygame.transform.rotate(self.__originalsurf, self.__angle)
-            x = self.__rect.centerx
-            y = self.__rect.centery
-            self.__rect = self.__surf.get_rect(center = self.__originalsurf.get_rect(center = (x, y)).center)
+            self.surf = pygame.transform.rotate(self.__originalsurf, self.angle)
+            x = self.rect.centerx
+            y = self.rect.centery
+            self.rect = self.surf.get_rect(center = self.__originalsurf.get_rect(center = (x, y)).center)
             self.__commandsIssued += 1
             return True
             
@@ -157,13 +140,13 @@ class Robot(pygame.sprite.Sprite):
     def moveLeft(self):
         if self.canRunCommand():
             speed = -Settings.SPEED
-            rectCopy = copy.deepcopy(self.__rect)
+            rectCopy = copy.deepcopy(self.rect)
             rectCopy = rectCopy.move(speed, 0)
 
             isColliding = GameManager.getGameManager().checkCollision(rectCopy, self.getRobotName())
 
-            if self.__rect.centerx > (self.getImageSize()[0] / 2) and not isColliding:
-                self.__rect = self.__rect.move(speed, 0)
+            if self.rect.centerx > (self.getImageSize()[0] / 2) and not isColliding:
+                self.rect = self.rect.move(speed, 0)
                 self.__commandsIssued += 1     
                 return True 
         
@@ -171,13 +154,13 @@ class Robot(pygame.sprite.Sprite):
 
     def moveRight(self):
         if self.canRunCommand():
-            rectCopy = copy.deepcopy(self.__rect)
+            rectCopy = copy.deepcopy(self.rect)
             rectCopy = rectCopy.move(Settings.SPEED, 0)
             
             isColliding = GameManager.getGameManager().checkCollision(rectCopy, self.getRobotName())
 
-            if self.__rect.centerx < Settings.SCREEN_WIDTH - (self.getImageSize()[0] / 2) and not isColliding:
-                self.__rect = self.__rect.move(Settings.SPEED, 0)
+            if self.rect.centerx < Settings.SCREEN_WIDTH - (self.getImageSize()[0] / 2) and not isColliding:
+                self.rect = self.rect.move(Settings.SPEED, 0)
                 self.__commandsIssued += 1
                 return True
 
@@ -186,13 +169,13 @@ class Robot(pygame.sprite.Sprite):
 
     def moveUp(self):
         if self.canRunCommand():
-            rectCopy = copy.deepcopy(self.__rect)
+            rectCopy = copy.deepcopy(self.rect)
             rectCopy = rectCopy.move(0, -Settings.SPEED)
 
             isColliding = GameManager.getGameManager().checkCollision(rectCopy, self.getRobotName())
 
-            if self.__rect.centery > (self.getOriginalSize()[1] / 2) and not isColliding:
-                self.__rect = self.__rect.move(0, -Settings.SPEED)
+            if self.rect.centery > (self.getOriginalSize()[1] / 2) and not isColliding:
+                self.rect = self.rect.move(0, -Settings.SPEED)
                 self.__commandsIssued += 1
                 return True
             
@@ -200,13 +183,13 @@ class Robot(pygame.sprite.Sprite):
 
     def moveDown(self):
         if self.canRunCommand():
-            rectCopy = copy.deepcopy(self.__rect)
+            rectCopy = copy.deepcopy(self.rect)
             rectCopy = rectCopy.move(0, Settings.SPEED)
 
             isColliding = GameManager.getGameManager().checkCollision(rectCopy, self.getRobotName())
 
-            if self.__rect.centery < Settings.SCREEN_HEIGHT - (self.getImageSize()[0] / 2)  and not isColliding:
-                self.__rect = self.__rect.move(0, Settings.SPEED)
+            if self.rect.centery < Settings.SCREEN_HEIGHT - (self.getImageSize()[0] / 2)  and not isColliding:
+                self.rect = self.rect.move(0, Settings.SPEED)
                 self.__commandsIssued += 1
                 return True
             
@@ -237,9 +220,6 @@ class Robot(pygame.sprite.Sprite):
         self.__totalCommandsIssued += self.__commandsIssued
         self.__commandsIssued = 0
 
-    @abstractmethod
-    def update(self):
-        self.direction = pygame.Vector2(1, 0).rotate(-self.__angle)
 
     def updateEnd(self, state):
         self.state = state     

@@ -2,19 +2,12 @@
 import pygame
 
 from Settings import Settings
+from core.CoreSprite import CoreSprite
 
-class Bullet(pygame.sprite.Sprite):
+class Bullet(CoreSprite):
     def __init__(self, pos, direction, robotName):
-        super().__init__()
-        self.image = pygame.image.load('bullet.jpg').convert()
-        self.rect = self.image.get_rect(center=pos)
-        self.direction = direction
-        self.pos = pygame.Vector2(self.rect.center)
+        super().__init__(pos, direction, 'bullet.jpg')
         self.robotName = robotName
-        self.isDestroyed = False
-
-    def getRect(self):
-        return self.rect
 
     def getRobotName(self):
         return self.robotName
@@ -31,11 +24,3 @@ class Bullet(pygame.sprite.Sprite):
             return False
             
         return True
-
-    def destroy(self):
-        self.isDestroyed = True
-        self.kill()
-
-    def draw(self, screen):
-        # Draw the actual bullet
-        screen.blit(self.image, self.rect)          
